@@ -452,8 +452,8 @@ namespace Sgml
         private string _docType;
         private WhitespaceHandling _whitespaceHandling;
         private CaseFolding _folding = CaseFolding.None;
-        bool _caseInsensitive = false;
-        IEqualityComparer<string> _comparer = StringComparer.Ordinal;
+        bool _caseInsensitive = true;
+        IEqualityComparer<string> _comparer = StringComparer.OrdinalIgnoreCase;
         private bool _stripDocType = true;
         //private string m_startTag;
         private readonly Dictionary<string, string> _unknownNamespaces = new ();
@@ -674,11 +674,7 @@ namespace Sgml
         public CaseFolding CaseFolding
         {
             get => _folding;
-            set {
-                _folding = value;
-                _caseInsensitive = (_folding != CaseFolding.None);
-                _comparer = _caseInsensitive ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
-            }
+            set => _folding = value;
         }
 
         /// <summary>
@@ -1444,6 +1440,13 @@ namespace Sgml
             return string.Equals(name1, name2, (_caseInsensitive ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal));
         }
 
+        private bool DtdNameEquals(string name1, string name2)
+        {
+            // compatisons with DTD elements is always case insensitive.
+            return string.Equals(name1, name2, StringComparison.OrdinalIgnoreCase);
+        }
+
+
 
         /// <summary>
         /// Reads the next node from the stream.
@@ -1701,7 +1704,7 @@ namespace Sgml
                 var rootDecl = _dtd.FindElement(_dtd.Name);
                 if (rootDecl != null)
                 {
-                    if (NameEquals(name, rootDecl.Name))
+                    if (DtdNameEquals(name, rootDecl.Name))
                     {
                         // hey it matches, so we're good!
                         return false;
@@ -2141,7 +2144,7 @@ namespace Sgml
                     _current.ScanToEnd(null, "DOCTYPE", ">");
                 }
 
-                if (_dtd != null && !NameEquals(_dtd.Name, name))
+                if (_dtd != null && !DtdNameEquals(_dtd.Name, name))
                 {
                     throw new InvalidOperationException("DTD does not match document type");
                 }
@@ -2875,7 +2878,7 @@ namespace Sgml
                             if (n.Includes(name))
                                 return;   // element is allowed
 
-                            if (_isHtml && (i == 2) && NameEquals(f.Name, "BODY"))
+                            if (_isHtml && (i == 2) && DtdNameEquals(f.Name, "BODY"))
                             {
                                 // NOTE (steveb): never close the BODY tag too early
                                 break;

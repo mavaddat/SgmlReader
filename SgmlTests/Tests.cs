@@ -58,6 +58,12 @@ namespace SgmlTests
         }
 
         [Test]
+        public void T06_Case_folding_none()
+        {
+            Test("10.test", XmlRender.Passthrough, CaseFolding.None, "html", false);
+        }
+
+        [Test]
         public void T07_Recover_from_attribute_with_nested_quotes() {
             Test("07.test", XmlRender.Passthrough, CaseFolding.ToUpper, "html", true);
         }
@@ -617,5 +623,22 @@ namespace SgmlTests
                 Assert.AreEqual(expected, result);
             }
         }
+
+        [Test]
+        public void Test_LoadWikipedia()
+        {
+            using (var reader = new SgmlReader()
+            {
+                DocType = "html",
+                PublicIdentifier = "-//W3C//DTD XHTML 1.0 Transitional//EN",
+                SystemLiteral = "http://www.w3.org/TR/html4/loose.dtd",
+                Href = "wikipedia.html",
+                Resolver = new TestEntityResolver()
+            })
+            {
+                var doc = XDocument.Load(reader);
+            }
+        }
     }
+
 }
